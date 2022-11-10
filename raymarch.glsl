@@ -7,7 +7,7 @@ uniform vec4 u_paramA;
 uniform vec4 u_paramB;
 uniform vec4 u_paramC;
 uniform vec4 u_paramD;
-uniform vec4 u_thresholdColor;
+uniform vec4 u_metaParam;
 
 
 #define _LEVELS 7
@@ -15,7 +15,7 @@ uniform vec4 u_thresholdColor;
 
 float thresh(float d)
 {
-    return  d * u_thresholdColor.x / 100;
+    return  d * u_metaParam.x / 100;
 }
 
 float saturate( float x ) { return clamp( x, 0.0, 1.0 ); }
@@ -92,7 +92,9 @@ vec2 hartverdrahtet(vec3 p) {
    //call basic shape and scale its DE
    //need to adjust fractal_distancemult with non zero julia seed
    float rxy=length(p.xy)-fu;
+   
    //distance from pos to the pseudo kleinian basic shape ...
+
    return vec2(fd*max(rxy,abs(length(p.xy)*p.z)/sqrt(dot(p,p)))/abs(dEfactor), orbit);
 }
 
@@ -147,7 +149,19 @@ vec2 appolonian( vec3 p)
 
 vec2 DE(in vec3 p)
 {
-    return appolonian(p);
+    float type = u_metaParam.a * 5.0;
+    if ( type <1.0) {
+        return appolonian(p);
+
+    } else if (type < 2.0) {
+        return tglad_variant (p);
+
+    } else if (type < 3.0) {
+
+    }
+
+    return vec2(0);
+
 }
 
 vec3 calculate_normal(in vec3 p)
@@ -185,18 +199,18 @@ vec3 ray_march(in vec3 ro, in vec3 rd)
 
             float diffuse_intensity = 0.5 * dot(normal, direction_to_light) + 0.5;
             // return vec3(1.0 - float(i) / float(NUMBER_OF_STEPS)) * 
-                // inferno_quintic(dist.y * u_thresholdColor.y * 100.0) * diffuse_intensity;
+                // inferno_quintic(dist.y * u_metaParam.y * 100.0) * diffuse_intensity;
             float t = 1.0 - float(i) / float(NUMBER_OF_STEPS);
             vec3 col =  inferno_quintic(t);
             return col * t;
-            // return vec3( dist.y * u_thresholdColor.y);
+            // return vec3( dist.y * u_metaParam.y);
         }
 
         if (total_distance_traveled > MAXIMUM_TRACE_DISTANCE)
         {
             break;
         }
-        total_distance_traveled += dist.x * u_thresholdColor.z;
+        total_distance_traveled += dist.x * u_metaParam.z;
     }
     return vec3(0.0);
 }
